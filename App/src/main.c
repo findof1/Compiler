@@ -42,6 +42,7 @@ int main(void)
   printTokenVector(&v);
 
   free(src);
+  src = NULL;
   getchar();
   return 0;
 }

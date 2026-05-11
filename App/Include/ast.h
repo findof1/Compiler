@@ -35,7 +35,7 @@ typedef struct
   {
     int intValue;
     float floatValue;
-    float doubleValue;
+    double doubleValue;
   };
 } NumberAST;
 
@@ -94,5 +94,59 @@ typedef struct ASTNode
     VarDeclarationAST varDeclaration;
     IfStatementAST ifStatement;
     BinaryExprAST binaryExpr;
+    WhileStatementAST whileStatement;
   };
 } ASTNode;
+
+ASTNode createIntNode(int i)
+{
+  ASTNode node;
+  node.type = NumberLiteral;
+
+  node.number.type = Integer;
+  node.number.intValue = i;
+
+  return node;
+}
+
+ASTNode createFloatNode(float f)
+{
+  ASTNode node;
+  node.type = NumberLiteral;
+
+  node.number.type = Float;
+  node.number.floatValue = f;
+
+  return node;
+}
+
+ASTNode createDoubleNode(double d)
+{
+  ASTNode node;
+  node.type = NumberLiteral;
+
+  node.number.type = Double;
+  node.number.doubleValue = d;
+
+  return node;
+}
+
+ASTNode createStringNode(char *s)
+{
+  ASTNode node;
+  node.type = StringLiteral;
+
+  node.string.value = s;
+
+  return node;
+}
+
+ASTNode createIdentifierNode(char *name)
+{
+  ASTNode node;
+  node.type = Identifier;
+
+  node.identifier.name = name;
+
+  return node;
+}

@@ -1,6 +1,7 @@
 #pragma once
 #include "vector.h"
 #include "tokenTypes.h"
+#include "arena.h"
 
 typedef struct ASTNode ASTNode;
 
@@ -98,55 +99,16 @@ typedef struct ASTNode
   };
 } ASTNode;
 
-ASTNode createIntNode(int i)
-{
-  ASTNode node;
-  node.type = NumberLiteral;
+ASTNode *createIntNode(Arena *arena, int i);
 
-  node.number.type = Integer;
-  node.number.intValue = i;
+ASTNode *createFloatNode(Arena *arena, float f);
 
-  return node;
-}
+ASTNode *createDoubleNode(Arena *arena, double d);
 
-ASTNode createFloatNode(float f)
-{
-  ASTNode node;
-  node.type = NumberLiteral;
+ASTNode *createStringNode(Arena *arena, char *s);
 
-  node.number.type = Float;
-  node.number.floatValue = f;
+ASTNode *createIdentifierNode(Arena *arena, char *name);
 
-  return node;
-}
+void printNumberNode(ASTNode *node);
 
-ASTNode createDoubleNode(double d)
-{
-  ASTNode node;
-  node.type = NumberLiteral;
-
-  node.number.type = Double;
-  node.number.doubleValue = d;
-
-  return node;
-}
-
-ASTNode createStringNode(char *s)
-{
-  ASTNode node;
-  node.type = StringLiteral;
-
-  node.string.value = s;
-
-  return node;
-}
-
-ASTNode createIdentifierNode(char *name)
-{
-  ASTNode node;
-  node.type = Identifier;
-
-  node.identifier.name = name;
-
-  return node;
-}
+const char *numberTypeToString(NumberType type);

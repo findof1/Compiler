@@ -4,6 +4,8 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "parser.h"
+#include "ast.h"
 
 char *readFile(const char *path)
 {
@@ -40,6 +42,20 @@ int main(void)
   printf("%s\n", src);
   Vector v = tokenize(src);
   printTokenVector(&v);
+  Arena arena;
+  initArena(&arena, sizeof(ASTNode) * PARSER_CAPACITY);
+  Parser parser;
+  initParser(&parser, &v, &arena);
+  ASTNode *node = parseNumberLiteral(&parser);
+  printNumberNode(node);
+  node = parseNumberLiteral(&parser);
+  printNumberNode(node);
+  node = parseNumberLiteral(&parser);
+  printNumberNode(node);
+  node = parseNumberLiteral(&parser);
+  printNumberNode(node);
+  node = parseNumberLiteral(&parser);
+  printNumberNode(node);
 
   free(src);
   src = NULL;

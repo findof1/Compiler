@@ -30,12 +30,13 @@ const char *tokenTypeToString(TokenType type)
 {
   static const char *names[] = {
       "Number",
-      "Identifier",
+      "IdentifierToken",
 
       "Plus",
       "Minus",
       "Times",
       "Slash",
+      "DoubleIndicator",
 
       "OpenParen",
       "ClosedParen",

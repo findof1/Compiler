@@ -4,12 +4,13 @@
 typedef enum
 {
   Number, // 0-9
-  Identifier,
+  IdentifierToken,
 
-  Plus,  // +
-  Minus, // -
-  Times, // *
-  Slash, // /
+  Plus,            // +
+  Minus,           // -
+  Times,           // *
+  Slash,           // /
+  DoubleIndicator, // ex: 1.002323d
 
   OpenParen,     // (
   ClosedParen,   // )

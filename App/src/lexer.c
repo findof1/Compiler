@@ -297,11 +297,13 @@ Vector tokenize(const char *sourceCode)
     else if (isInt(c))
     {
       int start = i;
-      char number = c;
-      while (isInt(number) && (size_t)i + 1 < sourceLength)
+      bool seenDot = false;
+      while ((isInt(sourceCode[i]) || (sourceCode[i] == '.' && !seenDot)) && (size_t)i < sourceLength)
       {
+        if (sourceCode[i] == '.')
+          seenDot = true;
+
         i++;
-        number = sourceCode[i];
       }
       int numberLength = i - start;
 
@@ -324,7 +326,7 @@ Vector tokenize(const char *sourceCode)
     {
       int start = i;
       char letter = c;
-      while (isAlpha(letter) && (size_t)i + 1 < sourceLength)
+      while (isAlpha(letter) && (size_t)i < sourceLength)
       {
         i++;
         letter = sourceCode[i];
@@ -452,10 +454,19 @@ Vector tokenize(const char *sourceCode)
         push(&tokens, &t);
         continue;
       }
+      else if (strcmp(identifier, "d") == 0)
+      {
+        free(identifier);
+        Token t;
+        t.type = DoubleIndicator;
+        t.value = NULL;
+        push(&tokens, &t);
+        continue;
+      }
       else
       {
         Token t;
-        t.type = Identifier;
+        t.type = IdentifierToken;
         t.value = identifier;
         push(&tokens, &t);
         continue;

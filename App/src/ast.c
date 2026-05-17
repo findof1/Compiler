@@ -104,3 +104,13 @@ const char *numberTypeToString(NumberType type)
 
   return names[type];
 }
+
+void printStringNode(ASTNode *node)
+{
+  printf("Node: \n Node Type: String Literal\n Value: \"%s\"\n", node->string.value);
+}
+
+void printIdentifierNode(ASTNode *node)
+{
+  printf("Node: \n Node Type: Identifier\n Name: %s\n", node->identifier.name);
+}

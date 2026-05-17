@@ -52,12 +52,12 @@ Vector tokenize(const char *sourceCode)
     return tokens;
 
   size_t sourceLength = strlen(sourceCode);
-
+  bool insideStr = false;
   int i = 0;
   while ((size_t)i < sourceLength)
   {
     char c = sourceCode[i];
-    if (isCharSkippable(c))
+    if (isCharSkippable(c) && !insideStr)
     {
       i++;
       continue;
@@ -69,7 +69,7 @@ Vector tokenize(const char *sourceCode)
       nextC = sourceCode[i + 1];
     }
 
-    if (c == '+')
+    if (c == '+' && !insideStr)
     {
       Token t;
       t.type = Plus;
@@ -78,7 +78,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '-')
+    else if (c == '-' && !insideStr)
     {
       Token t;
       t.type = Minus;
@@ -87,7 +87,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '*')
+    else if (c == '*' && !insideStr)
     {
       Token t;
       t.type = Times;
@@ -96,7 +96,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '/')
+    else if (c == '/' && !insideStr)
     {
       Token t;
       t.type = Slash;
@@ -105,7 +105,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '(')
+    else if (c == '(' && !insideStr)
     {
       Token t;
       t.type = OpenParen;
@@ -114,7 +114,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == ')')
+    else if (c == ')' && !insideStr)
     {
       Token t;
       t.type = ClosedParen;
@@ -123,7 +123,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '[')
+    else if (c == '[' && !insideStr)
     {
       Token t;
       t.type = OpenBracket;
@@ -132,7 +132,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == ']')
+    else if (c == ']' && !insideStr)
     {
       Token t;
       t.type = ClosedBracket;
@@ -141,7 +141,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '{')
+    else if (c == '{' && !insideStr)
     {
       Token t;
       t.type = OpenBrace;
@@ -150,7 +150,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '}')
+    else if (c == '}' && !insideStr)
     {
       Token t;
       t.type = ClosedBrace;
@@ -159,7 +159,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == ';')
+    else if (c == ';' && !insideStr)
     {
       Token t;
       t.type = Semicolon;
@@ -168,7 +168,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == ',')
+    else if (c == ',' && !insideStr)
     {
       Token t;
       t.type = Comma;
@@ -177,7 +177,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '.')
+    else if (c == '.' && !insideStr)
     {
       Token t;
       t.type = Dot;
@@ -186,7 +186,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '\'')
+    else if (c == '\'' && !insideStr)
     {
       Token t;
       t.type = SingleQuote;
@@ -197,6 +197,7 @@ Vector tokenize(const char *sourceCode)
     }
     else if (c == '"')
     {
+      insideStr = !insideStr;
       Token t;
       t.type = DoubleQuote;
       t.value = NULL;
@@ -204,7 +205,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '>' && nextC == '=')
+    else if (c == '>' && nextC == '=' && !insideStr)
     {
       Token t;
       t.type = GrEq;
@@ -213,7 +214,7 @@ Vector tokenize(const char *sourceCode)
       i += 2;
       continue;
     }
-    else if (c == '>')
+    else if (c == '>' && !insideStr)
     {
       Token t;
       t.type = Gr;
@@ -222,7 +223,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '<' && nextC == '=')
+    else if (c == '<' && nextC == '=' && !insideStr)
     {
       Token t;
       t.type = LsEq;
@@ -231,7 +232,7 @@ Vector tokenize(const char *sourceCode)
       i += 2;
       continue;
     }
-    else if (c == '<')
+    else if (c == '<' && !insideStr)
     {
       Token t;
       t.type = Ls;
@@ -240,7 +241,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '=' && nextC == '=')
+    else if (c == '=' && nextC == '=' && !insideStr)
     {
       Token t;
       t.type = DoubleEquals;
@@ -249,7 +250,7 @@ Vector tokenize(const char *sourceCode)
       i += 2;
       continue;
     }
-    else if (c == '=')
+    else if (c == '=' && !insideStr)
     {
       Token t;
       t.type = Equals;
@@ -258,7 +259,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '!' && nextC == '=')
+    else if (c == '!' && nextC == '=' && !insideStr)
     {
       Token t;
       t.type = NotEq;
@@ -267,7 +268,7 @@ Vector tokenize(const char *sourceCode)
       i += 2;
       continue;
     }
-    else if (c == '!')
+    else if (c == '!' && !insideStr)
     {
       Token t;
       t.type = Not;
@@ -276,7 +277,7 @@ Vector tokenize(const char *sourceCode)
       i++;
       continue;
     }
-    else if (c == '&' && nextC == '&')
+    else if (c == '&' && nextC == '&' && !insideStr)
     {
       Token t;
       t.type = And;
@@ -285,7 +286,7 @@ Vector tokenize(const char *sourceCode)
       i += 2;
       continue;
     }
-    else if (c == '|' && nextC == '|')
+    else if (c == '|' && nextC == '|' && !insideStr)
     {
       Token t;
       t.type = Or;
@@ -294,7 +295,7 @@ Vector tokenize(const char *sourceCode)
       i += 2;
       continue;
     }
-    else if (isInt(c))
+    else if (isInt(c) && !insideStr)
     {
       int start = i;
       bool seenDot = false;
@@ -319,6 +320,31 @@ Vector tokenize(const char *sourceCode)
       Token t;
       t.type = Number;
       t.value = intStr;
+      push(&tokens, &t);
+      continue;
+    }
+    else if (insideStr)
+    {
+      int start = i;
+      char letter = c;
+      while (letter != '"' && (size_t)i < sourceLength)
+      {
+        i++;
+        letter = sourceCode[i];
+      }
+      int identifierLength = i - start;
+      char *identifier = malloc((size_t)identifierLength + 1);
+      if (!identifier)
+      {
+        printf("Memory Allocation Failure when Tokenizing\n");
+      }
+
+      memcpy(identifier, sourceCode + start, (size_t)identifierLength);
+      identifier[identifierLength] = '\0';
+
+      Token t;
+      t.type = IdentifierToken;
+      t.value = identifier;
       push(&tokens, &t);
       continue;
     }

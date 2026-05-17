@@ -56,6 +56,8 @@ int main(void)
   printNumberNode(node);
   node = parseNumberLiteral(&parser);
   printNumberNode(node);
+  node = parseStringLiteral(&parser);
+  printStringNode(node);
 
   free(src);
   src = NULL;

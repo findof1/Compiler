@@ -93,3 +93,69 @@ ASTNode *parseNumberLiteral(Parser *parser)
 
   return node;
 }
+
+ASTNode *parseStringLiteral(Parser *parser)
+{
+  Token *current = get(parser);
+  char *str;
+  if (current->type == DoubleQuote)
+  {
+    advance(parser);
+    current = get(parser);
+    str = current->value;
+    if (current->type == IdentifierToken)
+    {
+      advance(parser);
+      current = get(parser);
+
+      if (current->type != DoubleQuote)
+      {
+        return NULL; // invalid string
+      }
+    }
+    else
+    {
+      return NULL; // invalid string
+    }
+  }
+  else
+  {
+    return NULL; // invalid string
+  }
+
+  ASTNode *node = (ASTNode *)arenaAlloc(parser->arena, sizeof(ASTNode));
+  if (!node)
+  {
+    return NULL;
+  }
+  node->type = StringLiteral;
+  node->string.value = str;
+
+  return node;
+}
+
+ASTNode *parseIdentifier(Parser *parser)
+{
+
+  Token *current = get(parser);
+  char *name;
+  if (current->type == IdentifierToken)
+  {
+    advance(parser);
+    name = current->value;
+  }
+  else
+  {
+    return NULL;
+  }
+
+  ASTNode *node = (ASTNode *)arenaAlloc(parser->arena, sizeof(ASTNode));
+  if (!node)
+  {
+    return NULL;
+  }
+  node->type = Identifier;
+  node->identifier.name = name;
+
+  return node;
+}

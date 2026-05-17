@@ -112,3 +112,7 @@ ASTNode *createIdentifierNode(Arena *arena, char *name);
 void printNumberNode(ASTNode *node);
 
 const char *numberTypeToString(NumberType type);
+
+void printStringNode(ASTNode *node);
+
+void printIdentifierNode(ASTNode *node);

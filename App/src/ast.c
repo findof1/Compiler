@@ -1,95 +1,78 @@
 #include "ast.h"
 
-ASTNode *createIntNode(Arena *arena, int i)
+void printIndent(int depth)
 {
-  ASTNode *node = (ASTNode *)arenaAlloc(arena, sizeof(ASTNode));
-  if (!node)
+  for (int i = 0; i < depth; i++)
   {
-    return NULL;
+    printf("  ");
   }
-  node->type = NumberLiteral;
-
-  node->number.type = Integer;
-  node->number.intValue = i;
-
-  return node;
 }
 
-ASTNode *createFloatNode(Arena *arena, float f)
+void printAST(ASTNode *node, int depth)
 {
-  ASTNode *node = (ASTNode *)arenaAlloc(arena, sizeof(ASTNode));
   if (!node)
   {
-    return NULL;
+    printIndent(depth);
+    printf("NULL\n");
+    return;
   }
-  node->type = NumberLiteral;
 
-  node->number.type = Float;
-  node->number.floatValue = f;
-
-  return node;
-}
-
-ASTNode *createDoubleNode(Arena *arena, double d)
-{
-  ASTNode *node = (ASTNode *)arenaAlloc(arena, sizeof(ASTNode));
-  if (!node)
+  switch (node->type)
   {
-    return NULL;
-  }
-  node->type = NumberLiteral;
-
-  node->number.type = Double;
-  node->number.doubleValue = d;
-
-  return node;
-}
-
-ASTNode *createStringNode(Arena *arena, char *s)
-{
-  ASTNode *node = (ASTNode *)arenaAlloc(arena, sizeof(ASTNode));
-  if (!node)
+  case BinaryExpr:
   {
-    return NULL;
+    printIndent(depth);
+    printf("Binary Expression\n");
+
+    printIndent(depth);
+    printf("Operator: %s\n", tokenTypeToString(node->binaryExpr.op));
+
+    printIndent(depth);
+    printf("Left:\n");
+    printAST(node->binaryExpr.left, depth + 1);
+
+    printIndent(depth);
+    printf("Right:\n");
+    printAST(node->binaryExpr.right, depth + 1);
+    break;
   }
-  node->type = StringLiteral;
 
-  node->string.value = s;
+  case NumberLiteral:
+    printIndent(depth);
+    printNumberNode(node);
+    break;
 
-  return node;
-}
+  case StringLiteral:
+    printIndent(depth);
+    printStringNode(node);
+    break;
 
-ASTNode *createIdentifierNode(Arena *arena, char *name)
-{
-  ASTNode *node = (ASTNode *)arenaAlloc(arena, sizeof(ASTNode));
-  if (!node)
-  {
-    return NULL;
+  case Identifier:
+    printIndent(depth);
+    printIdentifierNode(node);
+    break;
+
+  default:
+    printIndent(depth);
+    printf("Unknown node type\n");
+    break;
   }
-  node->type = Identifier;
-
-  node->identifier.name = name;
-
-  return node;
 }
 
 void printNumberNode(ASTNode *node)
 {
-
   double number = 0;
+
   if (node->number.type == Integer)
-  {
     number = (double)node->number.intValue;
-  }
   else if (node->number.type == Float)
-  {
     number = (double)node->number.floatValue;
-  }
   else
-  {
     number = (double)node->number.doubleValue;
-  }
-  printf("Node: \n Node Type: Number Literal\n Number Type: %s\n Value: %lf\n", numberTypeToString(node->number.type), number);
+
+  printf("Number Literal | Type: %s | Value: %lf\n",
+         numberTypeToString(node->number.type),
+         number);
 }
 
 const char *numberTypeToString(NumberType type)
@@ -107,10 +90,10 @@ const char *numberTypeToString(NumberType type)
 
 void printStringNode(ASTNode *node)
 {
-  printf("Node: \n Node Type: String Literal\n Value: \"%s\"\n", node->string.value);
+  printf("String Literal | Value: \"%s\"\n", node->string.value);
 }
 
 void printIdentifierNode(ASTNode *node)
 {
-  printf("Node: \n Node Type: Identifier\n Name: %s\n", node->identifier.name);
+  printf("Identifier | Name: %s\n", node->identifier.name);
 }

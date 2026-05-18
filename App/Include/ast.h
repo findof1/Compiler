@@ -82,6 +82,12 @@ typedef struct
   ASTNode *right;
 } BinaryExprAST;
 
+typedef struct
+{
+  ASTNode *target;
+  ASTNode *expr;
+} AssignmentExprAST;
+
 typedef struct ASTNode
 {
   ASTNodeType type;
@@ -95,19 +101,12 @@ typedef struct ASTNode
     VarDeclarationAST varDeclaration;
     IfStatementAST ifStatement;
     BinaryExprAST binaryExpr;
+    AssignmentExprAST assignmentExpr;
     WhileStatementAST whileStatement;
   };
 } ASTNode;
 
-ASTNode *createIntNode(Arena *arena, int i);
-
-ASTNode *createFloatNode(Arena *arena, float f);
-
-ASTNode *createDoubleNode(Arena *arena, double d);
-
-ASTNode *createStringNode(Arena *arena, char *s);
-
-ASTNode *createIdentifierNode(Arena *arena, char *name);
+void printAST(ASTNode *node, int depth);
 
 void printNumberNode(ASTNode *node);
 

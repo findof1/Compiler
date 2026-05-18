@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "lexer.h"
-#include "parser.h"
+#include "tokenParser.h"
 #include "ast.h"
 
 char *readFile(const char *path)
@@ -46,19 +46,8 @@ int main(void)
   initArena(&arena, sizeof(ASTNode) * PARSER_CAPACITY);
   Parser parser;
   initParser(&parser, &v, &arena);
-  ASTNode *node = parseNumberLiteral(&parser);
-  printNumberNode(node);
-  node = parseNumberLiteral(&parser);
-  printNumberNode(node);
-  node = parseNumberLiteral(&parser);
-  printNumberNode(node);
-  node = parseNumberLiteral(&parser);
-  printNumberNode(node);
-  node = parseNumberLiteral(&parser);
-  printNumberNode(node);
-  node = parseStringLiteral(&parser);
-  printStringNode(node);
-
+  ASTNode *node = parseExpression(&parser, 0);
+  printAST(node, 0);
   free(src);
   src = NULL;
   getchar();

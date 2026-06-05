@@ -23,6 +23,12 @@ void initParser(Parser *parser, Vector *tokens, Arena *arena);
 
 int getPrecedence(TokenType tokenType);
 
+ASTNode *parseProgram(Parser *parser);
+
+ASTNode *parseStatement(Parser *parser);
+
+ASTNode *parseIfStatement(Parser *parser);
+
 ASTNode *parseExpression(Parser *parser, int precedence);
 
 ASTNode *parsePrimary(Parser *parser);

@@ -19,6 +19,27 @@ void printAST(ASTNode *node, int depth)
 
   switch (node->type)
   {
+  case Program:
+  {
+    printIndent(depth);
+    printf("Program\n");
+
+    printIndent(depth);
+    printf("Statements:\n");
+    for (int i = 0; i < (int)node->program.statements.currentSize; i++)
+    {
+      ASTNode **ptr = (ASTNode **)getItem(&node->program.statements, i);
+
+      if (!ptr)
+      {
+        printf("NULL\n");
+        continue;
+      }
+
+      printAST(*ptr, depth + 1);
+    }
+    break;
+  }
   case BinaryExpr:
   {
     printIndent(depth);
@@ -34,6 +55,56 @@ void printAST(ASTNode *node, int depth)
     printIndent(depth);
     printf("Right:\n");
     printAST(node->binaryExpr.right, depth + 1);
+    break;
+  }
+
+  case IfStatement:
+  {
+    printIndent(depth);
+    printf("If Statement\n");
+
+    if (node->ifStatement.conditional == NULL)
+    {
+      printIndent(depth);
+      printf("Body:\n");
+      for (int i = 0; i < (int)node->ifStatement.body.currentSize; i++)
+      {
+        ASTNode **ptr = (ASTNode **)getItem(&node->ifStatement.body, i);
+
+        if (!ptr)
+        {
+          printf("NULL\n");
+          continue;
+        }
+
+        printAST(*ptr, depth + 1);
+      }
+    }
+    else
+    {
+      printIndent(depth);
+      printf("Conditional:\n");
+      printAST(node->ifStatement.conditional, depth + 1);
+
+      printIndent(depth);
+      printf("Body:\n");
+      for (int i = 0; i < (int)node->ifStatement.body.currentSize; i++)
+      {
+        ASTNode **ptr = (ASTNode **)getItem(&node->ifStatement.body, i);
+
+        if (!ptr)
+        {
+          printf("NULL slot\n");
+          continue;
+        }
+
+        printAST(*ptr, depth + 1);
+      }
+
+      printIndent(depth);
+      printf("Else Node:\n");
+      printAST(node->ifStatement.elseNode, depth + 1);
+    }
     break;
   }
 

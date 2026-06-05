@@ -40,13 +40,17 @@ int main(void)
     return 1;
   }
   printf("%s\n", src);
+  printf("Starting Tokenizing\n");
   Vector v = tokenize(src);
   printTokenVector(&v);
+  printf("Done Tokenizing\n");
   Arena arena;
   initArena(&arena, sizeof(ASTNode) * PARSER_CAPACITY);
   Parser parser;
   initParser(&parser, &v, &arena);
-  ASTNode *node = parseExpression(&parser, 0);
+  printf("Starting Parsing\n");
+  ASTNode *node = parseProgram(&parser);
+  printf("Done Parsing\n");
   printAST(node, 0);
   free(src);
   src = NULL;

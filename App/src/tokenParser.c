@@ -19,6 +19,23 @@ Token *get(Parser *parser)
   return t;
 }
 
+Token *expect(Parser *parser, TokenType type, const char *errMsg)
+{
+  Token *t = (Token *)getItem(parser->tokens, parser->position);
+  if (t->type != type)
+  {
+    printf("Parsing Error: %s Got: %s Expected: %s", errMsg, tokenTypeToString(t->type), tokenTypeToString(type));
+    getchar();
+  }
+
+  if (t->type == EndOfFile) // so we don't accidently access past the end of the source
+    return t;
+
+  parser->position++;
+
+  return t;
+}
+
 void initParser(Parser *parser, Vector *tokens, Arena *arena)
 {
   parser->tokens = tokens;
@@ -32,8 +49,117 @@ int getPrecedence(TokenType tokenType)
   {
     return 1;
   }
+  else if (tokenType == Minus)
+  {
+    return 1;
+  }
+  else if (tokenType == Times)
+  {
+    return 2;
+  }
+  else if (tokenType == Slash)
+  {
+    return 2;
+  }
 
   return 0;
+}
+
+ASTNode *parseProgram(Parser *parser)
+{
+  ASTNode *program = (ASTNode *)arenaAlloc(parser->arena, sizeof(ASTNode));
+  if (!program)
+  {
+    return NULL;
+  }
+  program->type = Program;
+  init(&program->program.statements, sizeof(ASTNode *), 5);
+
+  TokenType type = get(parser)->type;
+  while (type != EndOfFile)
+  {
+    ASTNode *stmt = parseStatement(parser);
+    push(&program->program.statements, &stmt);
+    type = get(parser)->type;
+  }
+
+  return program;
+}
+
+ASTNode *parseStatement(Parser *parser)
+{
+  Token *current = get(parser);
+  switch (current->type)
+  {
+  case If:
+    return parseIfStatement(parser);
+  default:
+    return parseExpression(parser, 0);
+  }
+}
+
+ASTNode *parseIfStatement(Parser *parser)
+{
+  advance(parser);
+  expect(parser, OpenParen, "Expected open parenthesis during if statement.");
+  ASTNode *comparison = parseExpression(parser, 0);
+  expect(parser, ClosedParen, "Expected closed parenthesis during if statement.");
+  expect(parser, OpenBrace, "Expected open brace during if statement.");
+
+  ASTNode *ifNode = (ASTNode *)arenaAlloc(parser->arena, sizeof(ASTNode));
+  if (!ifNode)
+  {
+    return NULL;
+  }
+  ifNode->type = IfStatement;
+  ifNode->ifStatement.conditional = comparison;
+  ifNode->ifStatement.elseNode = NULL;
+  init(&ifNode->ifStatement.body, sizeof(ASTNode *), 5);
+
+  TokenType type = get(parser)->type;
+  while (type != EndOfFile && type != ClosedBrace)
+  {
+    ASTNode *stmt = parseStatement(parser);
+    push(&ifNode->ifStatement.body, &stmt);
+    type = get(parser)->type;
+  }
+  expect(parser, ClosedBrace, "Expected closed brace ending if statement.");
+
+  type = get(parser)->type;
+  if (type == Else)
+  {
+    advance(parser);
+    type = get(parser)->type;
+    if (type == If)
+    {
+      ifNode->ifStatement.elseNode = parseIfStatement(parser);
+      return ifNode;
+    }
+
+    expect(parser, OpenBrace, "Expected open brace during if statement.");
+    ASTNode *elseNode = (ASTNode *)arenaAlloc(parser->arena, sizeof(ASTNode));
+    if (!elseNode)
+    {
+      return NULL;
+    }
+    elseNode->type = IfStatement;
+    elseNode->ifStatement.conditional = NULL;
+    elseNode->ifStatement.elseNode = NULL;
+
+    init(&elseNode->ifStatement.body, sizeof(ASTNode *), 5);
+
+    type = get(parser)->type;
+    while (type != EndOfFile && type != ClosedBrace)
+    {
+      ASTNode *stmt = parseStatement(parser);
+      push(&elseNode->ifStatement.body, &stmt);
+      type = get(parser)->type;
+    }
+
+    ifNode->ifStatement.elseNode = elseNode;
+  }
+
+  return ifNode;
 }
 
 ASTNode *parseExpression(Parser *parser, int precedence)
@@ -84,6 +210,14 @@ ASTNode *parsePrimary(Parser *parser)
   else if (current->type == DoubleQuote)
   {
     return parseStringLiteral(parser);
+  }
+  else if (current->type == OpenParen)
+  {
+    advance(parser);
+    ASTNode *node = parseExpression(parser, 0);
+    expect(parser, ClosedParen, "Missing closed paren in binary expression");
+
+    return node;
   }
 
   return NULL;

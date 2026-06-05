@@ -27,6 +27,8 @@ ASTNode *parseProgram(Parser *parser);
 
 ASTNode *parseStatement(Parser *parser);
 
+ASTNode *parseWhileStatement(Parser *parser);
+
 ASTNode *parseIfStatement(Parser *parser);
 
 ASTNode *parseExpression(Parser *parser, int precedence);

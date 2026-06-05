@@ -45,21 +45,29 @@ void initParser(Parser *parser, Vector *tokens, Arena *arena)
 
 int getPrecedence(TokenType tokenType)
 {
-  if (tokenType == Plus)
+  if (tokenType == Or || tokenType == And)
   {
     return 1;
+  }
+  else if (tokenType == DoubleEquals || tokenType == NotEq || tokenType == Ls || tokenType == LsEq || tokenType == Gr || tokenType == GrEq)
+  {
+    return 2;
+  }
+  else if (tokenType == Plus)
+  {
+    return 3;
   }
   else if (tokenType == Minus)
   {
-    return 1;
+    return 4;
   }
   else if (tokenType == Times)
   {
-    return 2;
+    return 5;
   }
   else if (tokenType == Slash)
   {
-    return 2;
+    return 6;
   }
 
   return 0;
@@ -93,6 +101,8 @@ ASTNode *parseStatement(Parser *parser)
   {
   case If:
     return parseIfStatement(parser);
+  case While:
+    return parseWhileStatement(parser);
   default:
     return parseExpression(parser, 0);
   }
@@ -162,6 +172,35 @@ ASTNode *parseIfStatement(Parser *parser)
   return ifNode;
 }
 
+ASTNode *parseWhileStatement(Parser *parser)
+{
+  advance(parser);
+  expect(parser, OpenParen, "Expected open parenthesis during while statement.");
+  ASTNode *comparison = parseExpression(parser, 0);
+  expect(parser, ClosedParen, "Expected closed parenthesis during while statement.");
+  expect(parser, OpenBrace, "Expected open brace during while statement.");
+
+  ASTNode *whileNode = (ASTNode *)arenaAlloc(parser->arena, sizeof(ASTNode));
+  if (!whileNode)
+  {
+    return NULL;
+  }
+  whileNode->type = WhileStatement;
+  whileNode->whileStatement.conditional = comparison;
+  init(&whileNode->whileStatement.body, sizeof(ASTNode *), 5);
+
+  TokenType type = get(parser)->type;
+  while (type != EndOfFile && type != ClosedBrace)
+  {
+    ASTNode *stmt = parseStatement(parser);
+    push(&whileNode->whileStatement.body, &stmt);
+    type = get(parser)->type;
+  }
+  expect(parser, ClosedBrace, "Expected closed brace ending while statement.");
+
+  return whileNode;
+}
+
 ASTNode *parseExpression(Parser *parser, int precedence)
 {
   ASTNode *left = parsePrimary(parser);
@@ -172,10 +211,21 @@ ASTNode *parseExpression(Parser *parser, int precedence)
   {
     Token *current = get(parser);
     TokenType op = current->type;
-    const int opPrecedence = getPrecedence(op);
-    if (opPrecedence <= precedence)
-      break;
-    advance(parser);
+    int opPrecedence;
+    if (op == OpenParen)
+    {
+      op = Times;
+      opPrecedence = getPrecedence(Times);
+      if (opPrecedence <= precedence)
+        break;
+    }
+    else
+    {
+      opPrecedence = getPrecedence(op);
+      if (opPrecedence <= precedence)
+        break;
+      advance(parser);
+    }
     ASTNode *right = parseExpression(parser, opPrecedence);
 
     ASTNode *node = (ASTNode *)arenaAlloc(parser->arena, sizeof(ASTNode));
@@ -185,7 +235,7 @@ ASTNode *parseExpression(Parser *parser, int precedence)
     }
     node->type = BinaryExpr;
     node->binaryExpr.left = left;
-    node->binaryExpr.op = current->type;
+    node->binaryExpr.op = op;
     node->binaryExpr.right = right;
 
     left = node;

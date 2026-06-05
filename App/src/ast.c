@@ -37,6 +37,7 @@ void printAST(ASTNode *node, int depth)
       }
 
       printAST(*ptr, depth + 1);
+      printf("\n");
     }
     break;
   }
@@ -55,6 +56,34 @@ void printAST(ASTNode *node, int depth)
     printIndent(depth);
     printf("Right:\n");
     printAST(node->binaryExpr.right, depth + 1);
+    break;
+  }
+  case WhileStatement:
+  {
+    printIndent(depth);
+    printf("While Statement\n");
+
+    printIndent(depth);
+    printf("Conditional:\n");
+    printAST(node->whileStatement.conditional, depth + 1);
+
+    printIndent(depth);
+    printf("Body:\n");
+    for (int i = 0; i < (int)node->whileStatement.body.currentSize; i++)
+    {
+      ASTNode **ptr = (ASTNode **)getItem(&node->whileStatement.body, i);
+
+      if (!ptr)
+      {
+        printf("NULL slot\n");
+        continue;
+      }
+
+      printAST(*ptr, depth + 1);
+
+      printf("\n");
+    }
+
     break;
   }
 
@@ -78,6 +107,8 @@ void printAST(ASTNode *node, int depth)
         }
 
         printAST(*ptr, depth + 1);
+
+        printf("\n");
       }
     }
     else
@@ -99,6 +130,8 @@ void printAST(ASTNode *node, int depth)
         }
 
         printAST(*ptr, depth + 1);
+
+        printf("\n");
       }
 
       printIndent(depth);

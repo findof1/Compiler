@@ -58,6 +58,38 @@ void printAST(ASTNode *node, int depth)
     printAST(node->binaryExpr.right, depth + 1);
     break;
   }
+  case VariableDeclaration:
+  {
+    printIndent(depth);
+    printf("Variable Declaration\n");
+
+    printIndent(depth);
+    printf("Operator: %s\n", tokenTypeToString(node->varDeclaration.varType));
+
+    printIndent(depth);
+    printf("Identifier:\n");
+    printAST(node->varDeclaration.identifier, depth + 1);
+
+    printIndent(depth);
+    printf("Expression:\n");
+    printAST(node->varDeclaration.expression, depth + 1);
+    break;
+  }
+  case AssignmentExpr:
+  {
+    printIndent(depth);
+    printf("Assignment Expression\n");
+
+    printIndent(depth);
+    printf("Target:\n");
+    printAST(node->assignmentExpr.target, depth + 1);
+
+    printIndent(depth);
+    printf("Expression:\n");
+    printAST(node->assignmentExpr.expr, depth + 1);
+
+    break;
+  }
   case WhileStatement:
   {
     printIndent(depth);

@@ -45,29 +45,33 @@ void initParser(Parser *parser, Vector *tokens, Arena *arena)
 
 int getPrecedence(TokenType tokenType)
 {
-  if (tokenType == Or || tokenType == And)
+  if (tokenType == Equals)
   {
     return 1;
   }
-  else if (tokenType == DoubleEquals || tokenType == NotEq || tokenType == Ls || tokenType == LsEq || tokenType == Gr || tokenType == GrEq)
+  else if (tokenType == Or || tokenType == And)
   {
     return 2;
   }
-  else if (tokenType == Plus)
+  else if (tokenType == DoubleEquals || tokenType == NotEq || tokenType == Ls || tokenType == LsEq || tokenType == Gr || tokenType == GrEq)
   {
     return 3;
   }
-  else if (tokenType == Minus)
+  else if (tokenType == Plus)
   {
     return 4;
   }
-  else if (tokenType == Times)
+  else if (tokenType == Minus)
   {
     return 5;
   }
-  else if (tokenType == Slash)
+  else if (tokenType == Times)
   {
     return 6;
+  }
+  else if (tokenType == Slash)
+  {
+    return 7;
   }
 
   return 0;
@@ -99,6 +103,12 @@ ASTNode *parseStatement(Parser *parser)
   Token *current = get(parser);
   switch (current->type)
   {
+  case IntType:
+  case FloatType:
+  case DoubleType:
+  case StrType:
+  case CharType:
+    parseVarDeclaration(parser);
   case If:
     return parseIfStatement(parser);
   case While:
@@ -106,6 +116,27 @@ ASTNode *parseStatement(Parser *parser)
   default:
     return parseExpression(parser, 0);
   }
+}
+
+ASTNode *parseVarDeclaration(Parser *parser)
+{
+  TokenType *varType = get(parser)->type;
+  advance(parser);
+  Token *identifier = expect(parser, Identifier, "Expected identifier during variable declaration");
+  expect(parser, Equals, "Expected equals sign during variable declaration");
+  ASTNode *expr = parseExpression(parser, 0);
+
+  ASTNode *varDecNode = (ASTNode *)arenaAlloc(parser->arena, sizeof(ASTNode));
+  if (!varDecNode)
+  {
+    return NULL;
+  }
+  varDecNode->type = VariableDeclaration;
+  varDecNode->varDeclaration.varType = varType;
+  varDecNode->varDeclaration.identifier = identifier;
+  varDecNode->varDeclaration.expression = expr;
+
+  return varDecNode;
 }
 
 ASTNode *parseIfStatement(Parser *parser)
@@ -233,10 +264,19 @@ ASTNode *parseExpression(Parser *parser, int precedence)
     {
       return NULL;
     }
-    node->type = BinaryExpr;
-    node->binaryExpr.left = left;
-    node->binaryExpr.op = op;
-    node->binaryExpr.right = right;
+    if (op == Equals)
+    {
+      node->type = AssignmentExpr;
+      node->assignmentExpr.target = left;
+      node->assignmentExpr.expr = right;
+    }
+    else
+    {
+      node->type = BinaryExpr;
+      node->binaryExpr.left = left;
+      node->binaryExpr.op = op;
+      node->binaryExpr.right = right;
+    }
 
     left = node;
   }

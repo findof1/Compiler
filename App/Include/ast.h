@@ -58,7 +58,7 @@ typedef struct
 typedef struct
 {
   TokenType varType;
-  char *identifier;
+  ASTNode *identifier;
   ASTNode *expression;
 } VarDeclarationAST;
 

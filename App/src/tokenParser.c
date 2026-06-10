@@ -26,6 +26,7 @@ Token *expect(Parser *parser, TokenType type, const char *errMsg)
   {
     printf("Parsing Error: %s Got: %s Expected: %s", errMsg, tokenTypeToString(t->type), tokenTypeToString(type));
     getchar();
+    return t;
   }
 
   if (t->type == EndOfFile) // so we don't accidently access past the end of the source
@@ -108,7 +109,7 @@ ASTNode *parseStatement(Parser *parser)
   case DoubleType:
   case StrType:
   case CharType:
-    parseVarDeclaration(parser);
+    return parseVarDeclaration(parser);
   case If:
     return parseIfStatement(parser);
   case While:
@@ -120,9 +121,15 @@ ASTNode *parseStatement(Parser *parser)
 
 ASTNode *parseVarDeclaration(Parser *parser)
 {
-  TokenType *varType = get(parser)->type;
+  TokenType varType = get(parser)->type;
   advance(parser);
-  Token *identifier = expect(parser, Identifier, "Expected identifier during variable declaration");
+  TokenType type = get(parser)->type;
+  ASTNode *identifier = parseIdentifier(parser);
+  if (identifier == NULL)
+  {
+    printf("Parsing Error: %s Got: %s Expected: %s", "Expected identifier during variable declaration", tokenTypeToString(type), tokenTypeToString(IdentifierToken));
+    getchar();
+  }
   expect(parser, Equals, "Expected equals sign during variable declaration");
   ASTNode *expr = parseExpression(parser, 0);
 
@@ -309,8 +316,13 @@ ASTNode *parsePrimary(Parser *parser)
 
     return node;
   }
-
-  return NULL;
+  else
+  {
+    advance(parser);
+    printf("Parsing Error: %s Got: %s", "Expected Expression", tokenTypeToString(current->type));
+    getchar();
+    return NULL;
+  }
 }
 
 ASTNode *parseNumberLiteral(Parser *parser)

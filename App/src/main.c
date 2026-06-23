@@ -6,6 +6,7 @@
 #include "lexer.h"
 #include "tokenParser.h"
 #include "ast.h"
+#include "analyzer.h"
 
 char *readFile(const char *path)
 {
@@ -49,9 +50,17 @@ int main(void)
   Parser parser;
   initParser(&parser, &v, &arena);
   printf("Starting Parsing\n");
-  ASTNode *node = parseProgram(&parser);
+  ASTNode *program = parseProgram(&parser);
   printf("Done Parsing\n");
-  printAST(node, 0);
+  printAST(program, 0);
+  if (analyzeAST(&arena, program))
+  {
+    printf("Program is valid\n");
+  }
+  else
+  {
+    printf("Program is not valid\n");
+  }
   free(src);
   src = NULL;
   getchar();

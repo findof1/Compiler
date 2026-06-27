@@ -92,6 +92,7 @@ bool analyzeStatements(Arena *arena, SemanticAnalyzer *analyzer, Vector *stateme
       {
         return false;
       }
+      current->varDeclaration.identifier->identifier.varId = (int)analyzer->currentScope->symbols.currentSize;
       push(&analyzer->currentScope->symbols, &var);
     }
     else if (current->type == AssignmentExpr)

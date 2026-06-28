@@ -1,5 +1,35 @@
 #include "IRGenerator.h"
 
+ValueType tokenTypeToValueType(TokenType type)
+{
+  switch (type)
+  {
+  case IntType:
+    return TypeInt;
+  case FloatType:
+    return TypeFloat;
+  case DoubleType:
+    return TypeDouble;
+  case StrType:
+    return TypeStr;
+  default:
+    printf("Token Type %i Cannot Be Converted Into Value Type", type);
+    return TypeInt;
+  }
+}
+
+Operand generateStatement(IRProgram *program, ASTNode *stat)
+{
+  (void)program;
+  (void)stat;
+  if (stat->type == IfStatement)
+  {
+  }
+  Operand temp;
+  temp.type = OperandTemp;
+  return temp;
+}
+
 Operand generateExpression(IRProgram *program, ASTNode *expr)
 {
 
@@ -7,7 +37,7 @@ Operand generateExpression(IRProgram *program, ASTNode *expr)
   {
     Operand temp;
     temp.type = OperandTemp;
-    temp.dataType = TypeInt; // ToDo: Generate resolved types in semantic analysis
+    temp.dataType = tokenTypeToValueType(expr->binaryExpr.resolvedType);
     temp.id = program->nextTemporary++;
     IRInstruction instruction;
     instruction.destination = temp;
@@ -22,7 +52,13 @@ Operand generateExpression(IRProgram *program, ASTNode *expr)
   {
     Operand op;
     op.type = OperandVar;
-    op.dataType = TypeInt; // ToDo: Generate resolved types in semantic analysis
+    if (expr->identifier.symbol == NULL)
+    {
+      printf("IR Generation Error: Identifier was not given a symbol in analysis.");
+      getchar();
+      exit(EXIT_FAILURE);
+    }
+    op.dataType = tokenTypeToValueType(expr->identifier.symbol->type);
     op.id = expr->identifier.varId;
     return op;
   }

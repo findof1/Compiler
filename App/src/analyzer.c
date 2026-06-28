@@ -4,41 +4,42 @@ void printScopedVariables(SemanticAnalyzer *analyzer)
 {
   for (int i = 0; i < (int)analyzer->currentScope->symbols.currentSize; i++)
   {
-    char **symbolPtr = getItem(&analyzer->currentScope->symbols, i);
-    printf("'%s'\n", *symbolPtr);
+    Symbol **symbolPtrPtr = getItem(&analyzer->currentScope->symbols, i);
+    Symbol *symbolPtr = *symbolPtrPtr;
+    printf("'%s'\n", symbolPtr->name);
   }
 }
 
-bool variableInScope(Scope *scope, char *var)
+Symbol *findStoredSymbol(Scope *scope, char *var)
 {
-  for (int j = 0; j < (int)scope->symbols.currentSize; j++)
+  for (int i = 0; i < (int)scope->symbols.currentSize; i++)
   {
-    char **symbolPtr = (char **)getItem(&scope->symbols, j);
-    char *symbol = *symbolPtr;
+    Symbol **symbolPtrPtr = getItem(&scope->symbols, i);
+    Symbol *symbolPtr = *symbolPtrPtr;
 
-    if (strcmp(symbol, var) == 0)
+    if (strcmp(symbolPtr->name, var) == 0)
     {
-      return true;
+      return symbolPtr;
     }
   }
 
   if (scope->parent != NULL)
   {
-    return variableInScope(scope->parent, var);
+    return findStoredSymbol(scope->parent, var);
   }
-  return false;
+  return NULL;
 }
 
 bool analyzeAST(Arena *arena, ASTNode *ast)
 {
   Scope *globalScope = arenaAlloc(arena, sizeof(Scope));
   globalScope->parent = NULL;
-  init(&globalScope->symbols, sizeof(char *), 2);
+  init(&globalScope->symbols, sizeof(Symbol), 2);
 
   SemanticAnalyzer analyzer;
   analyzer.arena = arena;
   analyzer.currentScope = globalScope;
-  (void)analyzer;
+  analyzer.nextId = 0;
   if (ast->type != Program)
   {
     printf("AST Error: AST passed into analyzeAST() is not of type Program\n");
@@ -52,7 +53,7 @@ bool analyzeIfStatement(Arena *arena, SemanticAnalyzer *analyzer, ASTNode *curre
 {
   Scope *ifScope = arenaAlloc(arena, sizeof(Scope));
   ifScope->parent = analyzer->currentScope;
-  init(&ifScope->symbols, sizeof(char *), 2);
+  init(&ifScope->symbols, sizeof(Symbol), 2);
   analyzer->currentScope = ifScope;
 
   if (!analyzeExpression(arena, analyzer, current->ifStatement.conditional))
@@ -83,7 +84,7 @@ bool analyzeStatements(Arena *arena, SemanticAnalyzer *analyzer, Vector *stateme
     if (current->type == VariableDeclaration)
     {
       char *var = current->varDeclaration.identifier->identifier.name;
-      if (variableInScope(analyzer->currentScope, var))
+      if (findStoredSymbol(analyzer->currentScope, var) != NULL)
       {
         printf("AST Error: Cannot declare a variable twice. Variable %s was already declared\n", var);
         return false;
@@ -93,16 +94,23 @@ bool analyzeStatements(Arena *arena, SemanticAnalyzer *analyzer, Vector *stateme
         return false;
       }
       current->varDeclaration.identifier->identifier.varId = (int)analyzer->currentScope->symbols.currentSize;
-      push(&analyzer->currentScope->symbols, &var);
+      Symbol *symbol = arenaAlloc(arena, sizeof(Symbol));
+      symbol->name = var;
+      symbol->type = current->varDeclaration.varType;
+      symbol->id = analyzer->nextId++;
+      current->varDeclaration.identifier->identifier.symbol = symbol;
+      push(&analyzer->currentScope->symbols, &symbol);
     }
     else if (current->type == AssignmentExpr)
     {
       char *var = current->assignmentExpr.target->identifier.name;
-      if (!variableInScope(analyzer->currentScope, var))
+      Symbol *symbol = findStoredSymbol(analyzer->currentScope, var);
+      if (symbol == NULL)
       {
         printf("AST Error: Assigning undefined variable: %s\n", var);
         return false;
       }
+      current->assignmentExpr.target->identifier.symbol = symbol;
 
       if (current->assignmentExpr.expr != NULL && !analyzeExpression(arena, analyzer, current->assignmentExpr.expr))
       {
@@ -120,7 +128,7 @@ bool analyzeStatements(Arena *arena, SemanticAnalyzer *analyzer, Vector *stateme
     {
       Scope *whileScope = arenaAlloc(arena, sizeof(Scope));
       whileScope->parent = analyzer->currentScope;
-      init(&whileScope->symbols, sizeof(char *), 2);
+      init(&whileScope->symbols, sizeof(Symbol), 2);
       analyzer->currentScope = whileScope;
       if (!analyzeExpression(arena, analyzer, current->whileStatement.conditional))
       {
@@ -144,6 +152,36 @@ bool analyzeStatements(Arena *arena, SemanticAnalyzer *analyzer, Vector *stateme
   return true;
 }
 
+TokenType getExpressionType(ASTNode *expr)
+{
+  switch (expr->type)
+  {
+  case BinaryExpr:
+    return expr->binaryExpr.resolvedType;
+  case Identifier:
+    return expr->identifier.symbol->type;
+  case NumberLiteral:
+    if (expr->number.type == Integer)
+    {
+      return IntType;
+    }
+    if (expr->number.type == Float)
+    {
+      return FloatType;
+    }
+    if (expr->number.type == Double)
+    {
+      return DoubleType;
+    }
+    return IntType;
+  case StringLiteral:
+    return StrType;
+  default:
+    printf("AST Error: Trying to get expression type of invalid type: %i\n", expr->type);
+    return IntType;
+  }
+}
+
 bool analyzeExpression(Arena *arena, SemanticAnalyzer *analyzer, ASTNode *expr)
 {
   if (expr->type == BinaryExpr)
@@ -152,21 +190,34 @@ bool analyzeExpression(Arena *arena, SemanticAnalyzer *analyzer, ASTNode *expr)
     {
       return false;
     }
+
+    TokenType type = getExpressionType(expr->binaryExpr.left);
     if (!analyzeExpression(arena, analyzer, expr->binaryExpr.right))
     {
       return false;
     }
+    TokenType type2 = getExpressionType(expr->binaryExpr.right);
+    if (type != type2)
+    {
+      printf("AST Error: Binary Expression is using two different types\n");
+
+      return false;
+    }
+    // ToDo: handle cases for boolean operators
+    expr->binaryExpr.resolvedType = type;
   }
 
   if (expr->type == Identifier)
   {
     char *var = expr->identifier.name;
-    if (!variableInScope(analyzer->currentScope, var))
+    Symbol *symbol = findStoredSymbol(analyzer->currentScope, var);
+    if (symbol == NULL)
     {
       printf("AST Error: Using undefined variable: %s\n", var);
 
       return false;
     }
+    expr->identifier.symbol = symbol;
   }
 
   return true;

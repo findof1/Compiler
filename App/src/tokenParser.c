@@ -440,6 +440,7 @@ ASTNode *parseIdentifier(Parser *parser)
   {
     return NULL;
   }
+  node->identifier.symbol = NULL;
   node->type = Identifier;
   node->identifier.name = name;
 

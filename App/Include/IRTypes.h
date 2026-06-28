@@ -45,7 +45,9 @@ typedef enum
   TypeInt,
   TypeFloat,
   TypeDouble,
-  TypeBool
+  TypeBool,
+  TypeChar,
+  TypeStr
 } ValueType;
 
 typedef struct

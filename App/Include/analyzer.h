@@ -4,12 +4,6 @@
 #include "arena.h"
 #include "ast.h"
 
-typedef struct
-{
-  char *name;
-  TokenType type;
-} Symbol;
-
 typedef struct Scope
 {
   Vector symbols;
@@ -20,10 +14,11 @@ typedef struct
 {
   Scope *currentScope;
   Arena *arena;
+  int nextId;
 } SemanticAnalyzer;
 
 void printScopedVariables(SemanticAnalyzer *analyzer);
-bool variableInScope(Scope *scope, char *var);
+Symbol *findStoredSymbol(Scope *scope, char *var);
 bool analyzeAST(Arena *arena, ASTNode *ast);
 bool analyzeIfStatement(Arena *arena, SemanticAnalyzer *analyzer, ASTNode *current);
 bool analyzeStatements(Arena *arena, SemanticAnalyzer *analyzer, Vector *statementsVector);

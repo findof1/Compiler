@@ -5,6 +5,13 @@
 
 typedef struct ASTNode ASTNode;
 
+typedef struct
+{
+  char *name;
+  TokenType type;
+  int id;
+} Symbol; // used for semantic analysis
+
 typedef enum
 {
   // statements
@@ -38,6 +45,7 @@ typedef struct
     float floatValue;
     double doubleValue;
   };
+
 } NumberAST;
 
 typedef struct
@@ -49,6 +57,7 @@ typedef struct
 {
   char *name;
   int varId;
+  Symbol *symbol; // resolved during semantic analysis
 } IdentifierAST;
 
 typedef struct
@@ -81,6 +90,7 @@ typedef struct
   ASTNode *left;
   TokenType op;
   ASTNode *right;
+  TokenType resolvedType; // only for analysis and IR gen
 } BinaryExprAST;
 
 typedef struct

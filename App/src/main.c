@@ -53,6 +53,8 @@ int main(void)
   ASTNode *program = parseProgram(&parser);
   printf("Done Parsing\n");
   printAST(program, 0);
+  printf("Starting Analysis\n");
+
   if (analyzeAST(&arena, program))
   {
     printf("Program is valid\n");

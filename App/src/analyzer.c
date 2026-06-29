@@ -93,7 +93,6 @@ bool analyzeStatements(Arena *arena, SemanticAnalyzer *analyzer, Vector *stateme
       {
         return false;
       }
-      current->varDeclaration.identifier->identifier.varId = (int)analyzer->currentScope->symbols.currentSize;
       Symbol *symbol = arenaAlloc(arena, sizeof(Symbol));
       symbol->name = var;
       symbol->type = current->varDeclaration.varType;
@@ -203,7 +202,10 @@ bool analyzeExpression(Arena *arena, SemanticAnalyzer *analyzer, ASTNode *expr)
 
       return false;
     }
-    // ToDo: handle cases for boolean operators
+    if (expr->binaryExpr.op == Gr || expr->binaryExpr.op == GrEq || expr->binaryExpr.op == Ls || expr->binaryExpr.op == LsEq || expr->binaryExpr.op == NotEq || expr->binaryExpr.op == DoubleEquals || expr->binaryExpr.op == And || expr->binaryExpr.op == Or || expr->binaryExpr.op == Not)
+    {
+      expr->binaryExpr.resolvedType = BoolType;
+    }
     expr->binaryExpr.resolvedType = type;
   }
 

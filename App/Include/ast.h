@@ -56,7 +56,6 @@ typedef struct
 typedef struct
 {
   char *name;
-  int varId;
   Symbol *symbol; // resolved during semantic analysis
 } IdentifierAST;
 

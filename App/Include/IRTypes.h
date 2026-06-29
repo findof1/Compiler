@@ -62,6 +62,8 @@ typedef struct
     float floatValue;
     double doubleValue;
     bool boolValue;
+    char *strValue;
+    char charValue;
   };
 } Operand;
 

@@ -7,6 +7,8 @@
 #include "tokenParser.h"
 #include "ast.h"
 #include "analyzer.h"
+#include "IRTypes.h"
+#include "IRGenerator.h"
 
 char *readFile(const char *path)
 {
@@ -63,6 +65,15 @@ int main(void)
   {
     printf("Program is not valid\n");
   }
+
+  IRProgram programGen;
+  init(&programGen.instructions, sizeof(IRInstruction), 10);
+  programGen.nextLabel = 0;
+  programGen.nextTemporary = 0;
+
+  generateProgram(&programGen, program);
+  printIR(&programGen);
+
   free(src);
   src = NULL;
   getchar();

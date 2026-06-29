@@ -108,6 +108,7 @@ ASTNode *parseStatement(Parser *parser)
   case FloatType:
   case DoubleType:
   case StrType:
+  case BoolType:
   case CharType:
     return parseVarDeclaration(parser);
   case If:

@@ -29,6 +29,7 @@ typedef enum
   DoubleType, // double
   StrType,    // str
   CharType,   // char
+  BoolType,   // bool
 
   If,    // if
   Else,  // else

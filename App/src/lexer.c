@@ -403,6 +403,15 @@ Vector tokenize(const char *sourceCode)
         push(&tokens, &t);
         continue;
       }
+      else if (strcmp(identifier, "bool") == 0)
+      {
+        free(identifier);
+        Token t;
+        t.type = BoolType;
+        t.value = NULL;
+        push(&tokens, &t);
+        continue;
+      }
       else if (strcmp(identifier, "char") == 0)
       {
         free(identifier);

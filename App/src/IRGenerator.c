@@ -266,10 +266,37 @@ void generateStatement(IRProgram *program, ASTNode *stat)
     label.right.type = OperandNone;
     push(&program->instructions, &label);
   }
+
+  if (stat->type == VariableDeclaration)
+  {
+    if (stat->varDeclaration.expression != NULL)
+    {
+      Operand expression = generateExpression(program, stat->varDeclaration.expression);
+
+      IRInstruction assign;
+      assign.destination = generateExpression(program, stat->varDeclaration.identifier);
+      assign.left = expression;
+      assign.right.type = OperandNone;
+      assign.op = IRAssign;
+      push(&program->instructions, &assign);
+    }
+  }
 }
 
 Operand generateExpression(IRProgram *program, ASTNode *expr)
 {
+
+  if (expr->type == AssignmentExpr)
+  {
+    Operand expression = generateExpression(program, expr->assignmentExpr.expr);
+
+    IRInstruction assign;
+    assign.destination = generateExpression(program, expr->assignmentExpr.target);
+    assign.left = expression;
+    assign.right.type = OperandNone;
+    assign.op = IRAssign;
+    push(&program->instructions, &assign);
+  }
 
   if (expr->type == BinaryExpr)
   {

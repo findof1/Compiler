@@ -234,28 +234,87 @@ void generateProgram(IRProgram *program, ASTNode *rootNode)
   }
 }
 
-void generateStatement(IRProgram *program, ASTNode *stat)
+void generateIfStatement(IRProgram *program, ASTNode *stat, Operand endLabel)
 {
-  if (stat->type == IfStatement)
+
+  bool hasElse = (stat->ifStatement.elseNode != NULL) && (stat->ifStatement.elseNode->type == IfStatement);
+  if (hasElse)
   {
-    Operand condition = generateExpression(program, stat->ifStatement.conditional);
+    Operand nextLabel;
+    nextLabel.type = OperandLabel;
+    nextLabel.id = program->nextLabel++;
 
-    Operand endLabel;
-    endLabel.type = OperandLabel;
-    endLabel.id = program->nextLabel++;
-
-    IRInstruction jumpIfFalse;
-    jumpIfFalse.destination = endLabel;
-    jumpIfFalse.left = condition;
-    jumpIfFalse.right.type = OperandNone;
-    jumpIfFalse.op = IRJumpIfFalse;
-    push(&program->instructions, &jumpIfFalse);
+    if (stat->ifStatement.conditional != NULL)
+    {
+      Operand condition = generateExpression(program, stat->ifStatement.conditional);
+      IRInstruction jumpIfFalse;
+      jumpIfFalse.destination = nextLabel;
+      jumpIfFalse.left = condition;
+      jumpIfFalse.right.type = OperandNone;
+      jumpIfFalse.op = IRJumpIfFalse;
+      push(&program->instructions, &jumpIfFalse);
+    }
 
     for (int i = 0; i < (int)stat->ifStatement.body.currentSize; i++)
     {
       ASTNode **statPtr = getItem(&stat->ifStatement.body, i);
       generateStatement(program, *statPtr);
     }
+
+    IRInstruction jumpToEnd;
+    jumpToEnd.destination = endLabel;
+    jumpToEnd.left.type = OperandNone;
+    jumpToEnd.right.type = OperandNone;
+    jumpToEnd.op = IRJump;
+    push(&program->instructions, &jumpToEnd);
+
+    IRInstruction label;
+    label.op = IRLabel;
+    label.destination = nextLabel;
+    label.left.type = OperandNone;
+    label.right.type = OperandNone;
+    push(&program->instructions, &label);
+
+    generateIfStatement(program, stat->ifStatement.elseNode, endLabel);
+  }
+  else
+  {
+    if (stat->ifStatement.conditional != NULL)
+    {
+      Operand condition = generateExpression(program, stat->ifStatement.conditional);
+      IRInstruction jumpIfFalse;
+      jumpIfFalse.destination = endLabel;
+      jumpIfFalse.left = condition;
+      jumpIfFalse.right.type = OperandNone;
+      jumpIfFalse.op = IRJumpIfFalse;
+      push(&program->instructions, &jumpIfFalse);
+    }
+
+    for (int i = 0; i < (int)stat->ifStatement.body.currentSize; i++)
+    {
+      ASTNode **statPtr = getItem(&stat->ifStatement.body, i);
+      generateStatement(program, *statPtr);
+    }
+
+    IRInstruction jumpToEnd;
+    jumpToEnd.destination = endLabel;
+    jumpToEnd.left.type = OperandNone;
+    jumpToEnd.right.type = OperandNone;
+    jumpToEnd.op = IRJump;
+    push(&program->instructions, &jumpToEnd);
+  }
+}
+
+void generateStatement(IRProgram *program, ASTNode *stat)
+{
+  if (stat->type == IfStatement)
+  {
+
+    Operand endLabel;
+    endLabel.type = OperandLabel;
+    endLabel.id = program->nextLabel++;
+
+    generateIfStatement(program, stat, endLabel);
 
     IRInstruction label;
     label.op = IRLabel;

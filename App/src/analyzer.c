@@ -56,9 +56,12 @@ bool analyzeIfStatement(Arena *arena, SemanticAnalyzer *analyzer, ASTNode *curre
   init(&ifScope->symbols, sizeof(Symbol), 2);
   analyzer->currentScope = ifScope;
 
-  if (!analyzeExpression(arena, analyzer, current->ifStatement.conditional))
+  if (current->ifStatement.conditional != NULL)
   {
-    return false;
+    if (!analyzeExpression(arena, analyzer, current->ifStatement.conditional))
+    {
+      return false;
+    }
   }
   if (!analyzeStatements(arena, analyzer, &current->ifStatement.body))
   {

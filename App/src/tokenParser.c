@@ -204,6 +204,7 @@ ASTNode *parseIfStatement(Parser *parser)
       push(&elseNode->ifStatement.body, &stmt);
       type = get(parser)->type;
     }
+    expect(parser, ClosedBrace, "Expected closed brace ending else statement.");
 
     ifNode->ifStatement.elseNode = elseNode;
   }

@@ -236,8 +236,6 @@ void generateProgram(IRProgram *program, ASTNode *rootNode)
 
 void generateStatement(IRProgram *program, ASTNode *stat)
 {
-  (void)program;
-  (void)stat;
   if (stat->type == IfStatement)
   {
     Operand condition = generateExpression(program, stat->ifStatement.conditional);
@@ -265,6 +263,56 @@ void generateStatement(IRProgram *program, ASTNode *stat)
     label.left.type = OperandNone;
     label.right.type = OperandNone;
     push(&program->instructions, &label);
+    return;
+  }
+
+  if (stat->type == WhileStatement)
+  {
+
+    Operand startLabel;
+    startLabel.type = OperandLabel;
+    startLabel.id = program->nextLabel++;
+
+    Operand endLabel;
+    endLabel.type = OperandLabel;
+    endLabel.id = program->nextLabel++;
+
+    IRInstruction startInstr;
+    startInstr.op = IRLabel;
+    startInstr.destination = startLabel;
+    startInstr.left.type = OperandNone;
+    startInstr.right.type = OperandNone;
+    push(&program->instructions, &startInstr);
+
+    Operand condition = generateExpression(program, stat->whileStatement.conditional);
+
+    IRInstruction jumpIfFalse;
+    jumpIfFalse.destination = endLabel;
+    jumpIfFalse.left = condition;
+    jumpIfFalse.right.type = OperandNone;
+    jumpIfFalse.op = IRJumpIfFalse;
+    push(&program->instructions, &jumpIfFalse);
+
+    for (int i = 0; i < (int)stat->whileStatement.body.currentSize; i++)
+    {
+      ASTNode **statPtr = getItem(&stat->whileStatement.body, i);
+      generateStatement(program, *statPtr);
+    }
+
+    IRInstruction jump;
+    jump.destination = startLabel;
+    jump.left.type = OperandNone;
+    jump.right.type = OperandNone;
+    jump.op = IRJump;
+    push(&program->instructions, &jump);
+
+    IRInstruction endInstr;
+    endInstr.op = IRLabel;
+    endInstr.destination = endLabel;
+    endInstr.left.type = OperandNone;
+    endInstr.right.type = OperandNone;
+    push(&program->instructions, &endInstr);
+    return;
   }
 
   if (stat->type == VariableDeclaration)
@@ -280,7 +328,11 @@ void generateStatement(IRProgram *program, ASTNode *stat)
       assign.op = IRAssign;
       push(&program->instructions, &assign);
     }
+    return;
   }
+
+  generateExpression(program, stat);
+  return;
 }
 
 Operand generateExpression(IRProgram *program, ASTNode *expr)
@@ -289,13 +341,14 @@ Operand generateExpression(IRProgram *program, ASTNode *expr)
   if (expr->type == AssignmentExpr)
   {
     Operand expression = generateExpression(program, expr->assignmentExpr.expr);
-
+    Operand var = generateExpression(program, expr->assignmentExpr.target);
     IRInstruction assign;
-    assign.destination = generateExpression(program, expr->assignmentExpr.target);
+    assign.destination = var;
     assign.left = expression;
     assign.right.type = OperandNone;
     assign.op = IRAssign;
     push(&program->instructions, &assign);
+    return var;
   }
 
   if (expr->type == BinaryExpr)
@@ -351,5 +404,6 @@ Operand generateExpression(IRProgram *program, ASTNode *expr)
   }
 
   printf("IR Generation Error: Unsupported expression type: %i.\n", expr->type);
+  getchar();
   exit(EXIT_FAILURE);
 }

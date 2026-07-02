@@ -9,6 +9,7 @@
 #include "analyzer.h"
 #include "IRTypes.h"
 #include "IRGenerator.h"
+#include "AsmGenerator.h"
 
 char *readFile(const char *path)
 {
@@ -74,6 +75,17 @@ int main(void)
   generateProgram(&programGen, program);
   printIR(&programGen);
 
+  FILE *out = fopen("main.s", "w");
+  if (out == NULL)
+  {
+    perror("main.s");
+    exit(EXIT_FAILURE);
+  }
+
+  generateAssembly(&programGen, out);
+
+  fclose(out);
+  arenaFree(&arena);
   free(src);
   src = NULL;
   getchar();
